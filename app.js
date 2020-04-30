@@ -11,12 +11,31 @@ var usersRouter = require('./routes/users');
 const apiRouter = require('./routes/api');
 
 var app = express();
+var session = require('express-session');
+const { v4: uuidv4 } = require('uuid');
+var FileStore = require('session-file-store')(session);
 
 const cors = require('cors');
 const corsOptions = {
   origin: process.env.CORS_ORIGIN,
-  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+  optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+  credentials: true
 };
+
+app.use(cors(corsOptions));
+
+app.use(cookieParser(process.env.SESSIONSECRET))
+app.use(session({
+  secret: process.env.SESSIONSECRET,
+  store: new FileStore,
+  cookie: { 
+    maxAge: 60000,
+    httpOnly: false,
+    secure: false
+  },
+  resave: false,
+  saveUninitialized: true
+}));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -29,7 +48,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/api', cors(corsOptions), apiRouter);
+app.use('/api', apiRouter);
 app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler

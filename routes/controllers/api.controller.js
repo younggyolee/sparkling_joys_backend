@@ -4,6 +4,10 @@ const ebayApi = require('../utils/ebayApi');
 const googleTranslateApi = require('../utils/googleTranslateApi');
 
 exports.guestAddItem = async function(req, res, next) {
+  // check on session
+  console.log('req.session', req.session);
+  console.log('req.sessionID', req.sessionID);
+
   try {    
     const translatedKeyword = await googleTranslateApi.translateText(
       'en',
