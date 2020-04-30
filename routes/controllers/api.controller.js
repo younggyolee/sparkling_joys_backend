@@ -2,7 +2,6 @@ const qs = require('qs');
 const axios = require('axios');
 const ebayApi = require('../utils/ebayApi');
 const googleTranslateApi = require('../utils/googleTranslateApi');
-// const { Pool } = require('pg');
 
 exports.guestAddItem = async function(req, res, next) {
   try {    
@@ -10,14 +9,15 @@ exports.guestAddItem = async function(req, res, next) {
       'en',
       req.params.keyword
     );
-    const { listings, avgPrice } = await ebayApi.getAvgPriceForKeyword(translatedKeyword);
-    console.log('translatedKeyword', translatedKeyword);
-    console.log('listings', listings, 'avgPrice', avgPrice);
+
+    const { listings, avgPrice, imageURL, currency } = await ebayApi.getAvgPrice(translatedKeyword);
     res.status(200).json({
       result: 'ok',
       avgPrice,
       translatedKeyword,
-      listings
+      listings,
+      imageURL,
+      currency
     });
   } catch (err) {
     res.status(500).json({
@@ -28,21 +28,3 @@ exports.guestAddItem = async function(req, res, next) {
     });
   }
 };
-
-
-
-// const pool = new Pool({
-//   user: process.env.DB_USER,
-//   host: process.env.DB_HOST,
-//   database: process.env.DB_DATABASE,
-//   password: process.env.DB_PASSWORD,
-//   port: process.env.DB_PORT
-// });
-
-// try {
-//   const users = await pool.query('CREATE TABLE users (ID int);');
-//   console.log(users);
-// } catch (err) {
-//   console.log(err);
-// }
-// return OK state

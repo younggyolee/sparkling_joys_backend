@@ -1,7 +1,7 @@
 const axios = require('axios');
 const qs = require('qs');
 
-exports.getAvgPriceForKeyword = async function(keyword) {
+exports.getAvgPrice = async function(keyword) {
   // Search from eBay up to 100 recently sold listings
   const now = new Date();
   const url = 'https://svcs.ebay.com/services/search/FindingService/v1?'
@@ -11,7 +11,9 @@ exports.getAvgPriceForKeyword = async function(keyword) {
       'SERVICE-VERSION': '1.0.0',
       'SECURITY-APPNAME': process.env.APP_ID,
       'RESPONSE-DATA-FORMAT': 'JSON',
-      'GLOBAL-ID': 'EBAY-US'
+      'GLOBAL-ID': 'EBAY-US', // Sets response currency in USD
+      'outputSelector(0)': 'PictureURLLarge',
+      'outputSelector(1)': 'PictureURLSuperSize'
     }) +
     '&REST-PAYLOAD&' +
     qs.stringify({
@@ -37,22 +39,34 @@ exports.getAvgPriceForKeyword = async function(keyword) {
   let listings = result.data.findCompletedItemsResponse[0].searchResult[0].item;
   listings = listings.map(item => {
     return {
-      itemId: item.itemId[0],
+      ebayItemId: item.itemId[0],
       title: item.title[0],
-      itemURL: item.viewItemURL[0],
-      itemPrice: item.sellingStatus[0].convertedCurrentPrice[0].__value__,
-      itemPriceCurrency: item.sellingStatus[0].convertedCurrentPrice[0]['@currencyId'],
+      url: item.viewItemURL[0],
+      price: item.sellingStatus[0].convertedCurrentPrice[0].__value__,
+      priceCurrency: item.sellingStatus[0].convertedCurrentPrice[0]['@currencyId'],
+      imageURLSuper: (item.pictureURLSuperSize && item.pictureURLSuperSize[0]) || '',
+      imageURLLarge: (item.pictureURLLarge && item.pictureURLLarge[0]) || '',
       endTime: item.listingInfo[0].endTime[0]
     };
   });
 
-  // Calculate average
   const sumPrices = listings.reduce((accumulator, item) => {
-    return accumulator + Number(item.itemPrice);
+    return accumulator + Number(item.price);
   }, 0);
   const avgPrice = Math.round(sumPrices / listings.length);
+
+  let imageURL;
+  for (let i = 0; i < listings.length; i++) {
+    if (listings[i].imageURLSuper) {
+      imageURL = listings[i].imageURLSuper;
+      break;
+    }
+  }
+
   return {
     listings,
-    avgPrice
+    avgPrice,
+    currency: listings[0].priceCurrency,
+    imageURL
   };
 };
