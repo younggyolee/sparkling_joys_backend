@@ -44,8 +44,8 @@ exports.getAvgPrice = async function(keyword) {
       url: item.viewItemURL[0],
       price: item.sellingStatus[0].convertedCurrentPrice[0].__value__,
       priceCurrency: item.sellingStatus[0].convertedCurrentPrice[0]['@currencyId'],
-      imageURLSuper: (item.pictureURLSuperSize && item.pictureURLSuperSize[0]) || '',
-      imageURLLarge: (item.pictureURLLarge && item.pictureURLLarge[0]) || '',
+      // imageURL: (item.pictureURLSuperSize && item.pictureURLSuperSize[0]) || '',
+      imageURL: (item.pictureURLLarge && item.pictureURLLarge[0]) || '',
       endTime: item.listingInfo[0].endTime[0]
     };
   });
