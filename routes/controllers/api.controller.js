@@ -10,12 +10,14 @@ exports.guestAddItem = async function(req, res, next) {
       'en',
       req.params.keyword
     );
-    const { items, avgPrice } = await ebayApi.getAvgPriceForKeyword(translatedKeyword);
+    const { listings, avgPrice } = await ebayApi.getAvgPriceForKeyword(translatedKeyword);
+    console.log('translatedKeyword', translatedKeyword);
+    console.log('listings', listings, 'avgPrice', avgPrice);
     res.status(200).json({
       result: 'ok',
       avgPrice,
       translatedKeyword,
-      items
+      listings
     });
   } catch (err) {
     res.status(500).json({

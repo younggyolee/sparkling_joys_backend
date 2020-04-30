@@ -26,7 +26,12 @@ exports.getAvgPriceForKeyword = async function(keyword) {
       // 'itemFilter(2).name': 'EndTimeFrom',
       // 'itemFilter(2).value(0)': new Date(now.setMonth(now.getMonth() - 1)).toISOString(),
     });
-  const result = await axios.get(url + queryString);
+  let result;
+  try {
+    result = await axios.get(url + queryString);
+  } catch (err) {
+    console.log(err);
+  }
 
   // Extract necessary information
   let listings = result.data.findCompletedItemsResponse[0].searchResult[0].item;
