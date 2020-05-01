@@ -12,7 +12,6 @@ const apiRouter = require('./routes/api');
 
 var app = express();
 var session = require('express-session');
-const { v4: uuidv4 } = require('uuid');
 var FileStore = require('session-file-store')(session);
 
 const cors = require('cors');
@@ -24,9 +23,9 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-app.use(cookieParser(process.env.SESSIONSECRET))
+app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(session({
-  secret: process.env.SESSIONSECRET,
+  secret: process.env.SESSION_SECRET,
   store: new FileStore,
   cookie: { 
     maxAge: 60000,
