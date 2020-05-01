@@ -25,7 +25,7 @@ exports.addGuestItem = async function(req, res, next) {
     const price = Math.round(sum / listings.length);
 
     // get image URL
-    let imageURL;
+    let imageURL = '';
     for (let i = 0; i < listings.length; i++) {
       if (listings[i].imageURL) {
         imageURL = listings[i].imageURL;
@@ -44,7 +44,8 @@ exports.addGuestItem = async function(req, res, next) {
         category_name,
         price,
         price_currency,
-        price_last_updated,
+        price_last_update_time,
+        creation_time,
         image_url
       )
       VALUES (
@@ -54,18 +55,17 @@ exports.addGuestItem = async function(req, res, next) {
         '', -- description
         '', -- category_id
         '', -- category_name
-        '${price}',
+        ${ price ? `${price}` : 'NULL' },
         '${currency}',
+        '${new Date().toISOString()}',
         '${new Date().toISOString()}',
         '${imageURL}'
       );`
     );
-
-    // Save the listings to DB
-    
     await client.end();
     res.status(200).end();
   } catch (err) {
+    console.log('Error while adding guest item.\n', err);
     res.status(500).json({
       result: 'error',
       error: {
@@ -107,3 +107,18 @@ exports.getGuestItems = async function(req, res, next) {
     next(err);
   }
 };
+
+exports.deleteGuestItem = async function(req, res, next) {
+  try {
+    const client = new Client();
+    await client.connect();
+    await client.query(
+      `DELETE FROM items WHERE id='${req.params.itemId}'`
+    );
+    await client.end();
+    res.status(200).end();
+  } catch (err) {
+    // res.status(500).end();
+    next(err);
+  }
+}

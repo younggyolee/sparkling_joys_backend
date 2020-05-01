@@ -36,7 +36,7 @@ exports.getListings = async function(keyword) {
   }
 
   // Extract necessary information
-  let listings = result.data.findCompletedItemsResponse[0].searchResult[0].item;
+  let listings = result.data.findCompletedItemsResponse[0].searchResult[0].item || [];
   listings = listings.map(item => {
     return {
       ebayItemId: item.itemId[0],
@@ -49,9 +49,10 @@ exports.getListings = async function(keyword) {
       endTime: item.listingInfo[0].endTime[0]
     };
   });
+  const currency = listings.length ? listings[0].priceCurrency : '';
 
   return {
     listings,
-    currency: listings[0].priceCurrency,
+    currency
   };
 };
