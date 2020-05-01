@@ -57,11 +57,12 @@ exports.getAvgPrice = async function(keyword) {
 
   let imageURL;
   for (let i = 0; i < listings.length; i++) {
-    if (listings[i].imageURLSuper) {
-      imageURL = listings[i].imageURLSuper;
+    if (listings[i].imageURL) {
+      imageURL = listings[i].imageURL;
       break;
     }
   }
+  console.log('imageURL', imageURL);
 
   return {
     listings,
