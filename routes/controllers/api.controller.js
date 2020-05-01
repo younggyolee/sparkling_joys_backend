@@ -60,6 +60,9 @@ exports.addGuestItem = async function(req, res, next) {
         '${imageURL}'
       );`
     );
+
+    // Save the listings to DB
+    
     await client.end();
     res.status(200).end();
   } catch (err) {
@@ -77,15 +80,23 @@ exports.getGuestItems = async function(req, res, next) {
   try {
     const client = new Client();
     await client.connect();
-    const result = await client.query(
+    const items = await client.query(
       `SELECT id, title, price, price_currency AS "priceCurrency",
               image_url AS "imageURL"
       FROM items
       WHERE user_id='${req.sessionID}'`
     );
+    const totalValue = await client.query(
+      `SELECT SUM(price) AS sum
+      FROM items
+      WHERE user_id = '${req.sessionID}'`
+    );
+    // console.log(totalValue.rows[0].sum);
     await client.end();
-    console.log(result.rows);
-    res.status(200).json(result.rows);
+    res.status(200).json({
+      items: items.rows,
+      totalValue: totalValue.rows[0].sum
+    });
   } catch (err) {
     res.status(500).json({
       result: 'error',
