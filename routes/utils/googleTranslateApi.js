@@ -3,7 +3,7 @@ const axios = require('axios');
 const { Translate } = require('@google-cloud/translate').v2;
 const translate = new Translate();
 
-exports.translateText = async function(
+exports.translate = async function(
   target,
   text
 ) {

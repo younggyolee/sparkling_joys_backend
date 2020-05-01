@@ -1,5 +1,3 @@
-const qs = require('qs');
-const axios = require('axios');
 const ebayApi = require('../utils/ebayApi');
 const googleTranslateApi = require('../utils/googleTranslateApi');
 const { Client } = require('pg');
@@ -17,16 +15,23 @@ exports.addGuestItem = async function(req, res, next) {
     );
 
     // Get average price and related listings from eBay API
-    const translatedKeyword = await googleTranslateApi.translateText(
-      'en',
-      req.params.keyword
-    );
-    const {
-      listings,
-      avgPrice,
-      imageURL,
-      currency 
-    } = await ebayApi.getAvgPrice(translatedKeyword);
+    const translatedKeyword = await googleTranslateApi.translate('en', req.params.keyword);
+    const { listings, currency } = await ebayApi.getListings(translatedKeyword);
+
+    // calculate avg price
+    const sum = listings.reduce((accumulator, item) => {
+      return accumulator + Number(item.price);
+    }, 0);
+    const price = Math.round(sum / listings.length);
+
+    // get image URL
+    let imageURL;
+    for (let i = 0; i < listings.length; i++) {
+      if (listings[i].imageURL) {
+        imageURL = listings[i].imageURL;
+        break;
+      }
+    }
 
     // Save the item to DB
     await client.query(
@@ -37,7 +42,8 @@ exports.addGuestItem = async function(req, res, next) {
         description,
         category_id,
         category_name,
-        price_usd,
+        price,
+        price_currency,
         price_last_updated,
         image_url
       )
@@ -48,21 +54,14 @@ exports.addGuestItem = async function(req, res, next) {
         '', -- description
         '', -- category_id
         '', -- category_name
-        '${avgPrice}',
+        '${price}',
+        '${currency}',
         '${new Date().toISOString()}',
         '${imageURL}'
       );`
     );
     await client.end();
-
-    res.status(200).json({
-      result: 'ok',
-      avgPrice,
-      translatedKeyword,
-      listings,
-      imageURL,
-      currency
-    });
+    res.status(200).end();
   } catch (err) {
     res.status(500).json({
       result: 'error',
@@ -79,13 +78,21 @@ exports.getGuestItems = async function(req, res, next) {
     const client = new Client();
     await client.connect();
     const result = await client.query(
-      `SELECT * FROM items WHERE user_id='${req.sessionID}'`
+      `SELECT id, title, price, price_currency AS "priceCurrency",
+              image_url AS "imageURL"
+      FROM items
+      WHERE user_id='${req.sessionID}'`
     );
     await client.end();
     console.log(result.rows);
     res.status(200).json(result.rows);
   } catch (err) {
-    // console.log('Error while getting items for guest', err);
+    res.status(500).json({
+      result: 'error',
+      error: {
+        'message': 'Internal Server Error while getting items'
+      }
+    });
     next(err);
   }
 };

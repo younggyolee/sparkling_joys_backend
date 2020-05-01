@@ -1,9 +1,9 @@
 const axios = require('axios');
 const qs = require('qs');
 
-exports.getAvgPrice = async function(keyword) {
+exports.getListings = async function(keyword) {
   // Search from eBay up to 100 recently sold listings
-  const now = new Date();
+  // const now = new Date();
   const url = 'https://svcs.ebay.com/services/search/FindingService/v1?'
   const queryString =
     qs.stringify({
@@ -50,24 +50,8 @@ exports.getAvgPrice = async function(keyword) {
     };
   });
 
-  const sumPrices = listings.reduce((accumulator, item) => {
-    return accumulator + Number(item.price);
-  }, 0);
-  const avgPrice = Math.round(sumPrices / listings.length);
-
-  let imageURL;
-  for (let i = 0; i < listings.length; i++) {
-    if (listings[i].imageURL) {
-      imageURL = listings[i].imageURL;
-      break;
-    }
-  }
-  console.log('imageURL', imageURL);
-
   return {
     listings,
-    avgPrice,
     currency: listings[0].priceCurrency,
-    imageURL
   };
 };
