@@ -24,7 +24,8 @@ CREATE TABLE items (
 	price_currency VARCHAR(10),
 	price_last_update_time TIMESTAMP WITH TIME ZONE,
 	creation_time TIMESTAMP WITH TIME ZONE,
-	image_url VARCHAR(255)
+	image_url VARCHAR(255),
+	is_owned BOOLEAN
 );
 
 CREATE TABLE listings (

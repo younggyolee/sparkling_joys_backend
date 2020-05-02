@@ -46,7 +46,8 @@ exports.addGuestItem = async function(req, res, next) {
         price_currency,
         price_last_update_time,
         creation_time,
-        image_url
+        image_url,
+        is_owned
       )
       VALUES (
         '${uuidv4()}',
@@ -59,7 +60,8 @@ exports.addGuestItem = async function(req, res, next) {
         '${currency}',
         '${new Date().toISOString()}',
         '${new Date().toISOString()}',
-        '${imageURL}'
+        '${imageURL}',
+        true
       );`
     );
     await client.end();
@@ -81,15 +83,20 @@ exports.getGuestItems = async function(req, res, next) {
     const client = new Client();
     await client.connect();
     const items = await client.query(
-      `SELECT id, title, price, price_currency AS "priceCurrency",
-              image_url AS "imageURL"
-      FROM items
-      WHERE user_id='${req.sessionID}'`
+      `SELECT id,
+              title,
+              price,
+              price_currency AS "priceCurrency",
+              image_url AS "imageURL",
+              creation_time AS "creationTime"
+       FROM items
+       WHERE user_id='${req.sessionID}'
+       ORDER BY creation_time`
     );
     const totalValue = await client.query(
       `SELECT SUM(price) AS sum
-      FROM items
-      WHERE user_id = '${req.sessionID}'`
+       FROM items
+       WHERE user_id = '${req.sessionID}'`
     );
     // console.log(totalValue.rows[0].sum);
     await client.end();
@@ -119,6 +126,36 @@ exports.deleteGuestItem = async function(req, res, next) {
     res.status(200).end();
   } catch (err) {
     // res.status(500).end();
+    console.log('Error while deleting guest item.\n', err);
     next(err);
   }
-}
+};
+
+exports.updateGuestItem = async function(req, res, next) {
+  console.log('updating guest item price');
+  try {
+    const client = new Client();
+    await client.connect();
+    if (req.body.type === 'price') {
+      await client.query(
+        `UPDATE items
+         SET price=${req.body.price},
+             price_currency='${req.body.priceCurrency}'
+         WHERE id='${req.params.itemId}'`
+      );
+    } else if (req.body.type === 'imageURL') {
+      const client = new Client();
+      await client.connect();
+      await client.query(
+        `UPDATE items
+         SET image_url='${req.body.imageURL}'
+         WHERE id='${req.params.itemId}'`
+      );
+    }
+    await client.end();
+    res.status(200).end();
+  } catch (err) {
+    console.log('Error while updating guest item.\n', err);
+    next(err);
+  }
+};
