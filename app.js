@@ -26,10 +26,11 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   store: new FileStore,
   cookie: { 
-    maxAge: 60000,
+    // maxAge: 3600 * 1000, // in milliseconds, equivalent to 1 hour
     httpOnly: false,
     secure: false
   },
+  rolling: true,
   resave: false,
   saveUninitialized: true
 }));
