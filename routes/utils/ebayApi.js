@@ -9,7 +9,7 @@ exports.getListings = async function(keyword) {
     qs.stringify({
       'OPERATION-NAME': 'findCompletedItems',
       'SERVICE-VERSION': '1.0.0',
-      'SECURITY-APPNAME': process.env.APP_ID,
+      'SECURITY-APPNAME': process.env.EBAY_APP_ID,
       'RESPONSE-DATA-FORMAT': 'JSON',
       'GLOBAL-ID': 'EBAY-US', // Sets response currency in USD
       'outputSelector(0)': 'PictureURLLarge',

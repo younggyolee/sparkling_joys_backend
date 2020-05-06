@@ -1,7 +1,7 @@
-const qs = require('qs');
-const axios = require('axios');
 const { Translate } = require('@google-cloud/translate').v2;
-const translate = new Translate();
+const translate = new Translate({
+  projectId: process.env.GOOGLE_APPLICATION_CREDENTIALS
+});
 
 exports.translate = async function(
   target,

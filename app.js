@@ -6,8 +6,14 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-const apiRouter = require('./routes/api');
+const passport = require('passport');
+require('./config/passport');
 
+const apiRouter = require('./routes/api');
+const signupRouter = require('./routes/signup');
+const loginRouter = require('./routes/login');
+
+// for session
 var app = express();
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
@@ -18,13 +24,13 @@ const corsOptions = {
   optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
   credentials: true
 };
-
 app.use(cors(corsOptions));
 
+// For guests
 app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(session({
   secret: process.env.SESSION_SECRET,
-  store: new FileStore,
+  // store: new FileStore,
   cookie: { 
     // maxAge: 3600 * 1000, // in milliseconds, equivalent to 1 hour
     httpOnly: false,
@@ -34,6 +40,11 @@ app.use(session({
   resave: false,
   saveUninitialized: true
 }));
+
+// For login
+app.use(require('body-parser').urlencoded({ extended: true }));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -46,6 +57,14 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api', apiRouter);
+app.use('/signup', signupRouter);
+app.use('/login', loginRouter);
+app.get('/logout', (req, res) => {
+  req.logout();
+  res.json({
+    result: 'ok'
+  });
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -54,14 +73,16 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
-  console.log(err);
   // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  const message = err.message;
+  const error = req.app.get('env') === 'development' ? err : {};
+  console.error(message, error);
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.json({
+    result: 'Error'
+  });
 });
 
 module.exports = app;
