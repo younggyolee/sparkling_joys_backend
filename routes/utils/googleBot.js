@@ -10,12 +10,13 @@ exports.getImageForKeyword = async function(keyword) {
   const page = await browser.newPage();
   await page.setViewport({width: 1200, height: 800});
   await page.goto('https://www.google.com/imghp?hl=en', { waitUntil: 'networkidle2' });
-  await page.screenshot({path: 'page.png'})
+  await page.screenshot({path: 'page.png'});
   await page.type('input[title="Search"]', keyword);
   const searchButtonSelector = 'button[aria-label="Google Search"]';
   await page.waitForSelector(searchButtonSelector);
   await page.waitFor(500 + Math.random() * 1000);
   await page.click(searchButtonSelector);
+  await page.screenshot({path: 'page2.png'});
   // 
   const firstImageSelector = 'img[alt]:not([alt=""])';
   await page.waitForSelector(firstImageSelector);
