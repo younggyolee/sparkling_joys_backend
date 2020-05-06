@@ -16,6 +16,7 @@ exports.getImageForKeyword = async function(keyword) {
   await page.waitForSelector(searchButtonSelector);
   await page.waitFor(500 + Math.random() * 1000);
   await page.click(searchButtonSelector);
+  await page.waitFor(3000 + Math.random() * 1000);
   await page.screenshot({path: 'page2.png'});
   // 
   const firstImageSelector = 'img[alt]:not([alt=""])';
