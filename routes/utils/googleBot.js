@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer');
 
 exports.getImageForKeyword = async function(keyword) {
+  console.log('google bot turned on!');
   const browser = await puppeteer.launch({
     // headless: false
   });
@@ -20,6 +21,7 @@ exports.getImageForKeyword = async function(keyword) {
   await page.waitForSelector(largeImageSelector);
   await page.waitFor(500 + Math.random() * 1000);
   const imgs = await page.$$eval(largeImageSelector, imgs => imgs.map(img => img.getAttribute('src')));
+  console.log('imgs', imgs);
   return imgs[0]
 
   // const imgSrc = imgs.filter(img => img.includes('https://'))[0];
