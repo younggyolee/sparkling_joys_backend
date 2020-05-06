@@ -2,9 +2,15 @@ const puppeteer = require('puppeteer');
 
 exports.getImageForKeyword = async function(keyword) {
   console.log('google bot turned on!');
-  const browser = await puppeteer.launch({executablePath: '/usr/bin/google-chrome-stable',headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox']});
+  const browser = await puppeteer.launch({
+    executablePath: '/usr/bin/google-chrome-stable',
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
   const page = await browser.newPage();
+  await page.setViewport({width: 1200, height: 800});
   await page.goto('https://www.google.com/imghp?hl=en', { waitUntil: 'networkidle2' });
+  await page.screenshot({path: 'page.png'})
   await page.type('input[title="Search"]', keyword);
   const searchButtonSelector = 'button[aria-label="Google Search"]';
   await page.waitForSelector(searchButtonSelector);
