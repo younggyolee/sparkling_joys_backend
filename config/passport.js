@@ -1,6 +1,6 @@
 const passport = require('passport');
 const Strategy = require('passport-local').Strategy;
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const { Client } = require('pg');
 
 passport.use(new Strategy(
