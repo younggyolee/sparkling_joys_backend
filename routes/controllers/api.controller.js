@@ -1,5 +1,6 @@
 const ebayApi = require('../utils/ebayApi');
 const googleTranslateApi = require('../utils/googleTranslateApi');
+const googleBot = require('../utils/googleBot');
 const { Client } = require('pg');
 const { v4: uuidv4 } = require('uuid');
 
@@ -65,12 +66,12 @@ exports.getGuestItems = async function(req, res, next) {
 };
 
 exports.getUserItems = async function(req, res, next) {
+  console.log(req.user);
   try {
     const client = new Client();
     await client.connect();
     const items = await getItems(client, req.user.id);
     const totalValue = await getTotalValue(client, req.user.id);
-    console.log('user items', items);
     await client.end();
     res.status(200).json({
       items,
@@ -154,9 +155,10 @@ exports.updateUserItem = async function(req, res, next) {
   } catch (err) {
     console.log('Error while updating guest item.\n', err);
     next(err);
-  }};
+  }
+};
 
-exports.getGuestItemDetails = async function(req, res, next) {
+exports.getItemDetails = async function(req, res, next) {
   try {
     const client = new Client();
     await client.connect();
@@ -174,7 +176,59 @@ exports.getGuestItemDetails = async function(req, res, next) {
     err.status = 500;
     next(err);
   }
-}
+};
+
+exports.getAvgPriceDaily = async function(req, res, next) {
+  try {
+    const client = new Client ();
+    await client.connect();
+    const { rows } = await client.query(
+      `SELECT end_date AS "endDate", avg(price) AS "avgPrice"
+       FROM listings
+       WHERE item_id = '${req.params.itemId}'
+       GROUP BY end_date
+       ORDER BY end_date`
+    );
+    res.status(200).json({
+      avgPriceDaily: rows
+    });
+    await client.end();
+  } catch (err) {
+    console.error('Error while getting getting daily average price for an item.\n', err);
+    err.status = 500;
+    next(err);
+  }
+};
+
+exports.getImageForKeyword = async function(req, res, next) {
+  // use google
+  try {
+    const imgSrc = await googleBot.getImageForKeyword(req.params.keyword);
+    if (imgSrc) {
+      res.status(200).json({
+        result: 'ok',
+        imgSrc
+      });
+    } else {
+      throw new Error
+    }
+  } catch (err) {
+    err.status = 200;
+    err.message = 'Error while getting image for keyword';
+    next(err);
+  }
+};
+
+exports.getUser = async function(req, res, next) {
+  if (req.user === undefined) {
+    res.json({});
+  } else {
+    res.json({
+      userId: req.user.id,
+      username: req.user.name
+    })
+  }
+};
 
 async function getItemDetails(client, itemId) {
   const listings = await client.query(
@@ -223,13 +277,17 @@ async function addItem(userId, keyword, signup_type) {
   }, 0);
   const avgPrice = Math.round(sumPrices / listings.length);
 
-  let imageURL = '';
-  for (let i = 0; i < listings.length; i++) {
-    if (listings[i].imageURL) {
-      imageURL = listings[i].imageURL;
-      break;
-    }
-  }
+  // // Extract from the first available image from eBay listings
+  // let imageURL = '';
+  // for (let i = 0; i < listings.length; i++) {
+  //   if (listings[i].imageURL) {
+  //     imageURL = listings[i].imageURL;
+  //     break;
+  //   }
+  // }
+
+  // Get image from Google Search
+  let imageURL = await googleBot.getImageForKeyword(keyword);
 
   const itemId = uuidv4();
   await saveItemToDB(

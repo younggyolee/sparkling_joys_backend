@@ -13,8 +13,6 @@ router.post('/', (req, res, next) => {
     return next('Password length is too short.');
   }
 
-  console.log('req.body', req.body);
-
   const saltRounds = Number(process.env.SALT_ROUNDS);
   bcrypt.hash(req.body.password, saltRounds, async function(err, hash) {
     try {

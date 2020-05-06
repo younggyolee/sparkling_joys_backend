@@ -6,7 +6,6 @@ const { Client } = require('pg');
 passport.use(new Strategy(
   async function(username, password, cb) {
     try {
-      // Get user from SQL
       const client = new Client();
       await client.connect();
       const result = await client.query(
@@ -32,7 +31,6 @@ passport.serializeUser(function(user, cb) {
 
 passport.deserializeUser(async function(id, cb) {
   try {
-    // Get user from SQL
     const client = new Client();
     await client.connect();
     const result = await client.query(

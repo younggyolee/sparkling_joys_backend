@@ -30,7 +30,7 @@ app.use(cors(corsOptions));
 app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(session({
   secret: process.env.SESSION_SECRET,
-  store: new FileStore,
+  // store: new FileStore,
   cookie: { 
     // maxAge: 3600 * 1000, // in milliseconds, equivalent to 1 hour
     httpOnly: false,
@@ -61,7 +61,9 @@ app.use('/signup', signupRouter);
 app.use('/login', loginRouter);
 app.get('/logout', (req, res) => {
   req.logout();
-  res.redirect('/');
+  res.json({
+    result: 'ok'
+  });
 });
 
 // catch 404 and forward to error handler
