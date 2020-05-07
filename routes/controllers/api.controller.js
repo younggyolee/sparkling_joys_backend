@@ -1,6 +1,7 @@
 const ebayApi = require('../utils/ebayApi');
 const googleTranslateApi = require('../utils/googleTranslateApi');
-const googleBot = require('../utils/googleBot');
+// const googleBot = require('../utils/googleBot');
+const bingBot = require('../utils/bingBot');
 const { Client } = require('pg');
 const { v4: uuidv4 } = require('uuid');
 
@@ -287,7 +288,8 @@ async function addItem(userId, keyword, signup_type) {
   // }
 
   // Get image from Google Search
-  let imageURL = await googleBot.getImageForKeyword(keyword);
+  // let imageURL = await googleBot.getImageForKeyword(keyword);
+  let imageURL = await bingBot.getImageForKeyword(keyword);
 
   const itemId = uuidv4();
   await saveItemToDB(
