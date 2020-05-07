@@ -278,18 +278,22 @@ async function addItem(userId, keyword, signup_type) {
   }, 0);
   const avgPrice = Math.round(sumPrices / listings.length);
 
-  // // Extract from the first available image from eBay listings
-  // let imageURL = '';
-  // for (let i = 0; i < listings.length; i++) {
-  //   if (listings[i].imageURL) {
-  //     imageURL = listings[i].imageURL;
-  //     break;
-  //   }
-  // }
+  let imageURL = '';
+  try {
+    imageURL = await bingBot.getImageForKeyword(keyword);
+  } catch (err) {
+    console.log('Error while trying bing bot to fetch image.\n', err);
+  }
 
-  // Get image from Google Search
-  // let imageURL = await googleBot.getImageForKeyword(keyword);
-  let imageURL = await bingBot.getImageForKeyword(keyword);
+  if (!imageURL) {
+    // Extract from the first available image from eBay listings
+    for (let i = 0; i < listings.length; i++) {
+      if (listings[i].imageURL) {
+        imageURL = listings[i].imageURL;
+        break;
+      }
+    }
+  }
 
   const itemId = uuidv4();
   await saveItemToDB(
