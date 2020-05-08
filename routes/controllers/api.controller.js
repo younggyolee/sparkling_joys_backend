@@ -49,10 +49,12 @@ exports.getGuestItems = async function(req, res, next) {
     await client.connect();
     const items = await getItems(client, req.sessionID);
     const totalValue = await getTotalValue(client, req.sessionID);
+    const totalCost = await getTotalCost(client, req.sessionID);
     await client.end();
     res.status(200).json({
       items,
-      totalValue
+      totalValue,
+      totalCost
     });
   } catch (err) {
     res.status(500).json({
@@ -71,10 +73,12 @@ exports.getUserItems = async function(req, res, next) {
     await client.connect();
     const items = await getItems(client, req.user.id);
     const totalValue = await getTotalValue(client, req.user.id);
+    const totalCost = await getTotalCost(client, req.sessionID);
     await client.end();
     res.status(200).json({
       items,
-      totalValue
+      totalValue,
+      totalCost
     });
   } catch (err) {
     res.status(500).json({
@@ -125,7 +129,8 @@ exports.updateGuestItem = async function(req, res, next) {
       req.body.title,
       req.body.price,
       req.body.imageURL,
-      req.body.description
+      req.body.description,
+      req.body.isOwned
     );
     await client.end();
     res.status(200).end();
@@ -199,24 +204,23 @@ exports.getAvgPriceDaily = async function(req, res, next) {
   }
 };
 
-exports.getImageForKeyword = async function(req, res, next) {
-  // use google
-  try {
-    const imgSrc = await googleBot.getImageForKeyword(req.params.keyword);
-    if (imgSrc) {
-      res.status(200).json({
-        result: 'ok',
-        imgSrc
-      });
-    } else {
-      throw new Error
-    }
-  } catch (err) {
-    err.status = 200;
-    err.message = 'Error while getting image for keyword';
-    next(err);
-  }
-};
+// exports.getImageForKeyword = async function(req, res, next) {
+//   try {
+//     const imgSrc = await googleBot.getImageForKeyword(req.params.keyword);
+//     if (imgSrc) {
+//       res.status(200).json({
+//         result: 'ok',
+//         imgSrc
+//       });
+//     } else {
+//       throw new Error
+//     }
+//   } catch (err) {
+//     err.status = 200;
+//     err.message = 'Error while getting image for keyword';
+//     next(err);
+//   }
+// };
 
 exports.getUser = async function(req, res, next) {
   if (req.user === undefined) {
@@ -246,7 +250,8 @@ async function getItemDetails(client, itemId) {
             price_currency AS "priceCurrency", 
             price_last_update_time AS "priceLastUpdateTime",
             creation_time AS "creationTime",
-            image_url AS "imageURL"
+            image_url AS "imageURL",
+            is_owned AS "isOwned"
      FROM items
      WHERE id='${itemId}'`
   );
@@ -376,7 +381,8 @@ async function getItems(client, userId) {
     `SELECT id, title, price,
             price_currency AS "priceCurrency",
             image_url AS "imageURL",
-            creation_time AS "creationTime"
+            creation_time AS "creationTime",
+            is_owned AS "isOwned"
      FROM items
      WHERE user_id='${userId}'
      ORDER BY creation_time DESC`
@@ -388,7 +394,20 @@ async function getTotalValue(client, userId) {
   const { rows } = await client.query(
     `SELECT SUM(price) AS sum
     FROM items
-    WHERE user_id = '${userId}'`
+    WHERE user_id = '${userId}'
+      AND is_owned=true
+    `
+  );
+  return rows[0].sum;
+}
+
+async function getTotalCost(client, userId) {
+  const { rows }  = await client.query(
+    `SELECT SUM(price) AS sum
+    FROM items
+    WHERE user_id = '${userId}'
+      AND is_owned=false
+    `
   );
   return rows[0].sum;
 }
@@ -399,14 +418,16 @@ async function deleteItem(client, itemId) {
   );
 }
 
-async function updateItem(client, itemId, title, price, imageURL, description) {
+async function updateItem(client, itemId, title, price, imageURL, description, isOwned) {
   let query = 'UPDATE items SET ';
   const setColumns = [];
   if (title) setColumns.push(`title='${title}'`);
   if (price) setColumns.push(`price=${Number(price)}`);
   if (imageURL) setColumns.push(`image_url='${imageURL}'`);
   if (description) setColumns.push(`description='${description}'`);
+  if (isOwned !== undefined) setColumns.push(`is_owned=${isOwned}`);
   query += setColumns.join(',');
   query += ` WHERE id='${itemId}';`
+  console.log('query', query);
   await client.query(query);
 }

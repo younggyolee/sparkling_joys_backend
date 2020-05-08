@@ -4,8 +4,8 @@ exports.getImageForKeyword = async function(keyword) {
   const browser = await puppeteer.launch();
   try {
     const page = await browser.newPage();
-    console.log('bing bot turned on!');
-    await page.goto('https://www.bing.com/?scope=images', { waitUntil: 'networkidle0' });
+    // console.log('bing bot turned on!');
+    await page.goto('https://www.bing.com/?scope=images', { waitUntil: 'networkidle2' });
 
     await page.type('#sb_form_q', keyword);
     let searchButtonSelector;
@@ -18,13 +18,13 @@ exports.getImageForKeyword = async function(keyword) {
     await page.click(searchButtonSelector);
 
     const imageLinksSelector = 'a[class="iusc"]';
-    await page.waitFor(1000 + Math.random() * 2000);
+    await page.waitFor(500 + Math.random() * 1000);
     const links = await page.$$eval(
       imageLinksSelector,
       linkTags => linkTags.map(linkTag => linkTag.getAttribute('href'))
     );
 
-    await page.goto('https://bing.com' + links[0], { waitUntil: 'networkidle0' });
+    await page.goto('https://bing.com' + links[0], { waitUntil: 'networkidle2' });
     const imageSelector='img.nofocus'
     await page.waitForSelector(imageSelector);
     const images = await page.$$eval(
