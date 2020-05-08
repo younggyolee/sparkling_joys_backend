@@ -140,7 +140,7 @@ exports.updateGuestItem = async function(req, res, next) {
   }
 };
 
-exports.updateUserItem = async function(req, res, next) {
+exports.updateUserItemIsOwned = async function(req, res, next) {
   try {
     const client = new Client();
     await client.connect();
@@ -158,6 +158,40 @@ exports.updateUserItem = async function(req, res, next) {
     });
   } catch (err) {
     console.log('Error while updating guest item.\n', err);
+    next(err);
+  }
+};
+
+exports.updateGuestItemIsOwned = async function(req, res, next) {
+  try {
+    const client = new Client();
+    await client.connect();
+    await updateItemIsOwned(
+      client,
+      req.params.itemId,
+      req.body.isOwned
+    );
+    await client.end();
+    res.status(200).end();
+  } catch (err) {
+    console.log('Error while updating isOwned status of guest item.\n', err);
+    next(err);
+  }
+};
+
+exports.updateUserItem = async function(req, res, next) {
+  try {
+    const client = new Client();
+    await client.connect();
+    await updateItemIsOwned(
+      client,
+      req.params.itemId,
+      req.body.isOwned
+    );
+    await client.end();
+    res.status(200).end();
+  } catch (err) {
+    console.log('Error while updating isOwned status of guest item.\n', err);
     next(err);
   }
 };
@@ -204,23 +238,23 @@ exports.getAvgPriceDaily = async function(req, res, next) {
   }
 };
 
-// exports.getImageForKeyword = async function(req, res, next) {
-//   try {
-//     const imgSrc = await googleBot.getImageForKeyword(req.params.keyword);
-//     if (imgSrc) {
-//       res.status(200).json({
-//         result: 'ok',
-//         imgSrc
-//       });
-//     } else {
-//       throw new Error
-//     }
-//   } catch (err) {
-//     err.status = 200;
-//     err.message = 'Error while getting image for keyword';
-//     next(err);
-//   }
-// };
+exports.getImageForKeyword = async function(req, res, next) {
+  try {
+    const imgSrc = await googleBot.getImageForKeyword(req.params.keyword);
+    if (imgSrc) {
+      res.status(200).json({
+        result: 'ok',
+        imgSrc
+      });
+    } else {
+      throw new Error
+    }
+  } catch (err) {
+    err.status = 200;
+    err.message = 'Error while getting image for keyword';
+    next(err);
+  }
+};
 
 exports.getUser = async function(req, res, next) {
   if (req.user === undefined) {
@@ -425,9 +459,15 @@ async function updateItem(client, itemId, title, price, imageURL, description, i
   if (price) setColumns.push(`price=${Number(price)}`);
   if (imageURL) setColumns.push(`image_url='${imageURL}'`);
   if (description) setColumns.push(`description='${description}'`);
-  if (isOwned !== undefined) setColumns.push(`is_owned=${isOwned}`);
+  if (isOwned === true || isOwned === false) setColumns.push(`is_owned=${isOwned}`);
   query += setColumns.join(',');
   query += ` WHERE id='${itemId}';`
-  console.log('query', query);
+  await client.query(query);
+}
+
+async function updateItemIsOwned(client, itemId, isOwned) {
+  let query = `UPDATE items
+               SET is_owned=${isOwned}
+               WHERE id='${itemId}';`;
   await client.query(query);
 }

@@ -6,7 +6,6 @@ exports.getImageForKeyword = async function(keyword) {
   });
   try {
     const page = await browser.newPage();
-    // console.log('bing bot turned on!');
     await page.goto('https://www.bing.com/?scope=images', { waitUntil: 'networkidle2' });
 
     await page.type('#sb_form_q', keyword);
