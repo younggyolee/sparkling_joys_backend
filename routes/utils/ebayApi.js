@@ -44,12 +44,16 @@ exports.getListings = async function(keyword) {
       url: item.viewItemURL[0],
       price: item.sellingStatus[0].convertedCurrentPrice[0].__value__,
       priceCurrency: item.sellingStatus[0].convertedCurrentPrice[0]['@currencyId'],
-      // imageURL: (item.pictureURLSuperSize && item.pictureURLSuperSize[0]) || '',
       imageURL: (item.pictureURLLarge && item.pictureURLLarge[0]) || '',
       endTime: item.listingInfo[0].endTime[0]
     };
   });
   const currency = listings.length ? listings[0].priceCurrency : '';
+
+  // Filter some irrelevant listings
+  listings = listings.filter(
+    listing => !listing.title.toLowerCase().includes('only')
+  );
 
   return {
     listings,

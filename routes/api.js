@@ -13,7 +13,7 @@ router.delete('/users/:userId/items/:itemId', apiController.deleteUserItem);
 router.put('/users/:userId/items/:itemId', apiController.updateUserItem);
 
 router.get('/items/:itemId/avg-price-daily', apiController.getAvgPriceDaily);
-router.post('/image/keyword/:keyword', apiController.getImageForKeyword);
+// router.post('/image/keyword/:keyword', apiController.getImageForKeyword);
 router.get('/items/:itemId/details', apiController.getItemDetails);
 
 router.get('/user', apiController.getUser);
