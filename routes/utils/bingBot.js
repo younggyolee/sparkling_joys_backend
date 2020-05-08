@@ -1,7 +1,9 @@
 const puppeteer = require('puppeteer');
 
 exports.getImageForKeyword = async function(keyword) {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    // headless: false
+  });
   try {
     const page = await browser.newPage();
     // console.log('bing bot turned on!');
@@ -18,7 +20,7 @@ exports.getImageForKeyword = async function(keyword) {
     await page.click(searchButtonSelector);
 
     const imageLinksSelector = 'a[class="iusc"]';
-    await page.waitFor(500 + Math.random() * 1000);
+    await page.waitFor(1000 + Math.random() * 1000);
     const links = await page.$$eval(
       imageLinksSelector,
       linkTags => linkTags.map(linkTag => linkTag.getAttribute('href'))
