@@ -12,13 +12,15 @@ const SIGNUP_TYPES = {
 exports.addGuestItem = async function(req, res, next) {
   try {
     await addItem(req.sessionID, req.params.keyword, SIGNUP_TYPES.GUEST);
-    res.status(200).end();
+    res.status(200).json({
+      result: 'ok'
+    });
   } catch (err) {
-    console.log('Error while adding guest item.\n', err);
+    console.log('Error while adding item for guest.\n', err);
     res.status(500).json({
       result: 'error',
       error: {
-        'message': 'Internal Server Error while getting average price for a keyword'
+        'message': 'Internal Server Error - while adding an item for a keyword'
       }
     });
     next(err);
@@ -32,11 +34,11 @@ exports.addUserItem = async function(req, res, next) {
       result: 'ok'
     });
   } catch (err) {
-    console.log('Error while adding guest item.\n', err);
+    console.log('Error while adding item for user.\n', err);
     res.status(500).json({
       result: 'error',
       error: {
-        'message': 'Internal Server Error while getting average price for a keyword'
+        'message': 'Internal Server Error - while adding an item for a keyword'
       }
     });
     next(err);
@@ -342,12 +344,15 @@ async function addItem(userId, keyword, signup_type) {
     currency,
     imageURL
   );
+  console.log('item saved');
   await saveListingsToDB(client, itemId, listings);
+  console.log('listings saved');
   await client.end();
 }
 
 async function saveListingsToDB(client, itemId, listings) {
   for (listing of listings) {
+    console.log(listing.title);
     await client.query(
       `INSERT INTO listings (
         id,
@@ -364,7 +369,7 @@ async function saveListingsToDB(client, itemId, listings) {
         '${uuidv4()}',
         '${itemId}',
         '${listing.endTime}',
-        '${listing.title}',
+        '${listing.title.replace("'", "")}',
         'ebay',
         ${listing.price},
         '${listing.priceCurrency}',

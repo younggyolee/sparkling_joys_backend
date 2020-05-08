@@ -15,7 +15,9 @@ exports.getImageForKeyword = async function(keyword) {
     } else {
       searchButtonSelector = 'input[id="sb_form_go"]';
     }
-    await page.waitForSelector(searchButtonSelector);
+    await page.waitForSelector(searchButtonSelector, {
+      timeout: 5000
+    });
     await page.click(searchButtonSelector);
 
     const imageLinksSelector = 'a[class="iusc"]';
@@ -27,7 +29,9 @@ exports.getImageForKeyword = async function(keyword) {
 
     await page.goto('https://bing.com' + links[0], { waitUntil: 'networkidle2' });
     const imageSelector='img.nofocus'
-    await page.waitForSelector(imageSelector);
+    await page.waitForSelector(imageSelector, {
+      timeout: 5000
+    });
     const images = await page.$$eval(
       imageSelector,
       imgs => imgs.map(img => img.getAttribute('src'))
