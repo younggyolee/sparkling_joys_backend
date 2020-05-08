@@ -10,7 +10,7 @@ exports.getImageForKeyword = async function(keyword) {
 
   await page.type('#sb_form_q', keyword);
   let searchButtonSelector;
-  if (process.env.NODE_ENV='development') {
+  if (process.env.NODE_ENV === 'development') {
     searchButtonSelector = 'label[for="sb_form_go"]';
   } else {
     searchButtonSelector = 'input[id="sb_form_go"]';
@@ -19,7 +19,6 @@ exports.getImageForKeyword = async function(keyword) {
   await page.click(searchButtonSelector);
 
   const imageLinksSelector = 'a[class="iusc"]';
-  // await page.waitForSelector(imageLinksSelector, { timeout: 30000 });
   await page.waitFor(1000 + Math.random() * 2000);
   const links = await page.$$eval(
     imageLinksSelector,
