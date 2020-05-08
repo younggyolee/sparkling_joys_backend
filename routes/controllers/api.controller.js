@@ -1,6 +1,5 @@
 const ebayApi = require('../utils/ebayApi');
 const googleTranslateApi = require('../utils/googleTranslateApi');
-// const googleBot = require('../utils/googleBot');
 const bingBot = require('../utils/bingBot');
 const { Client } = require('pg');
 const { v4: uuidv4 } = require('uuid');
@@ -67,7 +66,6 @@ exports.getGuestItems = async function(req, res, next) {
 };
 
 exports.getUserItems = async function(req, res, next) {
-  console.log(req.user);
   try {
     const client = new Client();
     await client.connect();
@@ -381,7 +379,7 @@ async function getItems(client, userId) {
             creation_time AS "creationTime"
      FROM items
      WHERE user_id='${userId}'
-     ORDER BY creation_time`
+     ORDER BY creation_time DESC`
   );
   return rows;
 }
