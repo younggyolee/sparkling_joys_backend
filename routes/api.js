@@ -12,7 +12,7 @@ router.post('/users/:userId/items/:keyword', apiController.addUserItem);
 router.get('/users/:userId/items', authorization, apiController.getUserItems);
 router.delete('/users/:userId/items/:itemId', apiController.deleteUserItem);
 router.put('/users/:userId/items/:itemId', apiController.updateUserItem);
-router.put('/guest/items/:itemId/isOwned', apiController.updateUserItemIsOwned);
+router.put('/users/:userId/items/:itemId/isOwned', apiController.updateUserItemIsOwned);
 
 router.get('/items/:itemId/avg-price-daily', apiController.getAvgPriceDaily);
 router.get('/items/:itemId/details', apiController.getItemDetails);
