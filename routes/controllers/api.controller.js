@@ -76,7 +76,7 @@ exports.getUserItems = async function(req, res, next) {
     await client.connect();
     const items = await getItems(client, req.user.id);
     const totalValue = await getTotalValue(client, req.user.id);
-    const totalCost = await getTotalCost(client, req.sessionID);
+    const totalCost = await getTotalCost(client, req.user.id);
     await client.end();
     res.status(200).json({
       items,
