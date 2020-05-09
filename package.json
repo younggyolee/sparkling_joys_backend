@@ -24,6 +24,8 @@
     "passport-local": "^1.0.0",
     "pg": "^8.0.3",
     "puppeteer": "^3.0.2",
+    "puppeteer-extra": "^3.1.9",
+    "puppeteer-extra-plugin-stealth": "^2.4.9",
     "qs": "^6.9.3",
     "session-file-store": "^1.4.0",
     "uuid": "^8.0.0"
