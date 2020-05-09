@@ -21,7 +21,7 @@ exports.getImageForKeyword = async function(keyword) {
     await page.click(searchButtonSelector);
 
     const imageLinksSelector = 'a[class="iusc"]';
-    await page.waitFor(1000 + Math.random() * 1000);
+    await page.waitFor(2000 + Math.random() * 1000);
     const links = await page.$$eval(
       imageLinksSelector,
       linkTags => linkTags.map(linkTag => linkTag.getAttribute('href'))

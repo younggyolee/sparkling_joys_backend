@@ -1,12 +1,16 @@
-const puppeteer = require('puppeteer');
+//const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
 
 exports.getRecommendedProducts = async function(keyword) {
   const browser = await puppeteer.launch({
-    headless: false
+//    headless: false
   });
   // try {
     const page = await browser.newPage();
-    await page.goto('https://www.amazon.com/');
+    await page.goto('https://www.amazon.com/', {waitUntil: 'networkidle2'});
+    await page.screenshot({path: 'amazon0.png'});
     await page.waitForSelector('#twotabsearchtextbox', { timeout: 5000 });
     await page.type('#twotabsearchtextbox', keyword);
     let searchButtonSelector;
