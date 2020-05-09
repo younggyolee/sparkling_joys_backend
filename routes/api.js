@@ -16,6 +16,7 @@ router.put('/guest/items/:itemId/isOwned', apiController.updateUserItemIsOwned);
 
 router.get('/items/:itemId/avg-price-daily', apiController.getAvgPriceDaily);
 router.get('/items/:itemId/details', apiController.getItemDetails);
+router.post('/items/:itemId/recommended-products', apiController.getRecommendedProducts);
 
 router.get('/user', apiController.getUser);
 

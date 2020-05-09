@@ -1,6 +1,7 @@
 const ebayApi = require('../utils/ebayApi');
 const googleTranslateApi = require('../utils/googleTranslateApi');
 const bingBot = require('../utils/bingBot');
+const amazonBot = require('../utils/amazonbot');
 const { Client } = require('pg');
 const { v4: uuidv4 } = require('uuid');
 
@@ -142,7 +143,7 @@ exports.updateGuestItem = async function(req, res, next) {
   }
 };
 
-exports.updateUserItemIsOwned = async function(req, res, next) {
+exports.updateUserItem = async function(req, res, next) {
   try {
     const client = new Client();
     await client.connect();
@@ -152,7 +153,8 @@ exports.updateUserItemIsOwned = async function(req, res, next) {
       req.body.title,
       req.body.price,
       req.body.imageURL,
-      req.body.description
+      req.body.description,
+      req.body.isOwned
     );
     await client.end();
     res.status(200).json({
@@ -181,7 +183,7 @@ exports.updateGuestItemIsOwned = async function(req, res, next) {
   }
 };
 
-exports.updateUserItem = async function(req, res, next) {
+exports.updateUserItemIsOwned = async function(req, res, next) {
   try {
     const client = new Client();
     await client.connect();
@@ -268,6 +270,22 @@ exports.getUser = async function(req, res, next) {
     })
   }
 };
+
+exports.getRecommendedProducts = async function(req, res, next) {
+  const client = new Client ();
+  await client.connect();
+  const keyword = await getItemTitle(client, req.params.itemId);
+  console.log('keyword', keyword);
+  await client.end();
+  await amazonBot.getRecommendedProducts(keyword);
+}
+
+async function getItemTitle(client, itemId) {
+  const item = await client.query(
+    `SELECT title FROM items WHERE id='${itemId}'`
+  );
+  return item.rows[0].title;
+}
 
 async function getItemDetails(client, itemId) {
   const listings = await client.query(
@@ -467,6 +485,7 @@ async function updateItem(client, itemId, title, price, imageURL, description, i
   if (isOwned === true || isOwned === false) setColumns.push(`is_owned=${isOwned}`);
   query += setColumns.join(',');
   query += ` WHERE id='${itemId}';`
+  console.log('query', query);
   await client.query(query);
 }
 
