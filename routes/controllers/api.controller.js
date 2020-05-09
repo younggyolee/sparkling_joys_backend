@@ -1,7 +1,7 @@
 const ebayApi = require('../utils/ebayApi');
 const googleTranslateApi = require('../utils/googleTranslateApi');
 const bingBot = require('../utils/bingBot');
-const amazonBot = require('../utils/amazonbot');
+const amazonBot = require('../utils/amazonBot');
 const { Client } = require('pg');
 const { v4: uuidv4 } = require('uuid');
 
