@@ -113,7 +113,7 @@ exports.deleteUserItem = async function(req, res, next) {
   try {
     const client = new Client();
     await client.connect();
-    await deleteItem(client, req.userId);
+    await deleteItem(client, req.params.itemId);
     await client.end();
     res.status(200).end();
   } catch (err) {
