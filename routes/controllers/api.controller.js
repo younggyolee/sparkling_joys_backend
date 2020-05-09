@@ -1,6 +1,7 @@
 const ebayApi = require('../utils/ebayApi');
 const googleTranslateApi = require('../utils/googleTranslateApi');
 const bingBot = require('../utils/bingBot');
+const amazonBot = require('../utils/amazonbot');
 const { Client } = require('pg');
 const { v4: uuidv4 } = require('uuid');
 
@@ -12,13 +13,15 @@ const SIGNUP_TYPES = {
 exports.addGuestItem = async function(req, res, next) {
   try {
     await addItem(req.sessionID, req.params.keyword, SIGNUP_TYPES.GUEST);
-    res.status(200).end();
+    res.status(200).json({
+      result: 'ok'
+    });
   } catch (err) {
-    console.log('Error while adding guest item.\n', err);
+    console.log('Error while adding item for guest.\n', err);
     res.status(500).json({
       result: 'error',
       error: {
-        'message': 'Internal Server Error while getting average price for a keyword'
+        'message': 'Internal Server Error - while adding an item for a keyword'
       }
     });
     next(err);
@@ -32,11 +35,11 @@ exports.addUserItem = async function(req, res, next) {
       result: 'ok'
     });
   } catch (err) {
-    console.log('Error while adding guest item.\n', err);
+    console.log('Error while adding item for user.\n', err);
     res.status(500).json({
       result: 'error',
       error: {
-        'message': 'Internal Server Error while getting average price for a keyword'
+        'message': 'Internal Server Error - while adding an item for a keyword'
       }
     });
     next(err);
@@ -150,7 +153,8 @@ exports.updateUserItem = async function(req, res, next) {
       req.body.title,
       req.body.price,
       req.body.imageURL,
-      req.body.description
+      req.body.description,
+      req.body.isOwned
     );
     await client.end();
     res.status(200).json({
@@ -158,6 +162,40 @@ exports.updateUserItem = async function(req, res, next) {
     });
   } catch (err) {
     console.log('Error while updating guest item.\n', err);
+    next(err);
+  }
+};
+
+exports.updateGuestItemIsOwned = async function(req, res, next) {
+  try {
+    const client = new Client();
+    await client.connect();
+    await updateItemIsOwned(
+      client,
+      req.params.itemId,
+      req.body.isOwned
+    );
+    await client.end();
+    res.status(200).end();
+  } catch (err) {
+    console.log('Error while updating isOwned status of guest item.\n', err);
+    next(err);
+  }
+};
+
+exports.updateUserItemIsOwned = async function(req, res, next) {
+  try {
+    const client = new Client();
+    await client.connect();
+    await updateItemIsOwned(
+      client,
+      req.params.itemId,
+      req.body.isOwned
+    );
+    await client.end();
+    res.status(200).end();
+  } catch (err) {
+    console.log('Error while updating isOwned status of guest item.\n', err);
     next(err);
   }
 };
@@ -204,23 +242,23 @@ exports.getAvgPriceDaily = async function(req, res, next) {
   }
 };
 
-// exports.getImageForKeyword = async function(req, res, next) {
-//   try {
-//     const imgSrc = await googleBot.getImageForKeyword(req.params.keyword);
-//     if (imgSrc) {
-//       res.status(200).json({
-//         result: 'ok',
-//         imgSrc
-//       });
-//     } else {
-//       throw new Error
-//     }
-//   } catch (err) {
-//     err.status = 200;
-//     err.message = 'Error while getting image for keyword';
-//     next(err);
-//   }
-// };
+exports.getImageForKeyword = async function(req, res, next) {
+  try {
+    const imgSrc = await googleBot.getImageForKeyword(req.params.keyword);
+    if (imgSrc) {
+      res.status(200).json({
+        result: 'ok',
+        imgSrc
+      });
+    } else {
+      throw new Error
+    }
+  } catch (err) {
+    err.status = 200;
+    err.message = 'Error while getting image for keyword';
+    next(err);
+  }
+};
 
 exports.getUser = async function(req, res, next) {
   if (req.user === undefined) {
@@ -232,6 +270,22 @@ exports.getUser = async function(req, res, next) {
     })
   }
 };
+
+exports.getRecommendedProducts = async function(req, res, next) {
+  const client = new Client ();
+  await client.connect();
+  const keyword = await getItemTitle(client, req.params.itemId);
+  console.log('keyword', keyword);
+  await client.end();
+  await amazonBot.getRecommendedProducts(keyword);
+}
+
+async function getItemTitle(client, itemId) {
+  const item = await client.query(
+    `SELECT title FROM items WHERE id='${itemId}'`
+  );
+  return item.rows[0].title;
+}
 
 async function getItemDetails(client, itemId) {
   const listings = await client.query(
@@ -308,12 +362,15 @@ async function addItem(userId, keyword, signup_type) {
     currency,
     imageURL
   );
+  console.log('item saved');
   await saveListingsToDB(client, itemId, listings);
+  console.log('listings saved');
   await client.end();
 }
 
 async function saveListingsToDB(client, itemId, listings) {
   for (listing of listings) {
+    console.log(listing.title);
     await client.query(
       `INSERT INTO listings (
         id,
@@ -330,7 +387,7 @@ async function saveListingsToDB(client, itemId, listings) {
         '${uuidv4()}',
         '${itemId}',
         '${listing.endTime}',
-        '${listing.title}',
+        '${listing.title.replace("'", "")}',
         'ebay',
         ${listing.price},
         '${listing.priceCurrency}',
@@ -425,9 +482,16 @@ async function updateItem(client, itemId, title, price, imageURL, description, i
   if (price) setColumns.push(`price=${Number(price)}`);
   if (imageURL) setColumns.push(`image_url='${imageURL}'`);
   if (description) setColumns.push(`description='${description}'`);
-  if (isOwned !== undefined) setColumns.push(`is_owned=${isOwned}`);
+  if (isOwned === true || isOwned === false) setColumns.push(`is_owned=${isOwned}`);
   query += setColumns.join(',');
   query += ` WHERE id='${itemId}';`
   console.log('query', query);
+  await client.query(query);
+}
+
+async function updateItemIsOwned(client, itemId, isOwned) {
+  let query = `UPDATE items
+               SET is_owned=${isOwned}
+               WHERE id='${itemId}';`;
   await client.query(query);
 }
