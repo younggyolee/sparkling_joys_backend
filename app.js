@@ -56,17 +56,18 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', (req,res) => {
-  res.status(200).json({
-    result: 'ok'
-  });
-})
 app.use('/api', apiRouter);
 app.use('/signup', signupRouter);
 app.use('/login', loginRouter);
 app.get('/logout', (req, res) => {
   req.logout();
   res.json({
+    result: 'ok'
+  });
+});
+
+app.use('/', (req, res) => {
+  res.status(200).json({
     result: 'ok'
   });
 });
