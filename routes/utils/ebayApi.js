@@ -7,7 +7,7 @@ exports.getListings = async function(keyword) {
   const url = 'https://svcs.ebay.com/services/search/FindingService/v1?'
   const queryString =
     qs.stringify({
-      'OPERATION-NAME': 'findCompletedItems',
+      'OPERATION-NAME': 'findItemsAdvanced',
       'SERVICE-VERSION': '1.0.0',
       'SECURITY-APPNAME': process.env.EBAY_APP_ID,
       'RESPONSE-DATA-FORMAT': 'JSON',
@@ -23,8 +23,8 @@ exports.getListings = async function(keyword) {
       'itemFilter(0).value(1)': 4000, // Very Good
       'itemFilter(0).value(2)': 5000, // Good
       'itemFilter(0).value(3)': 6000, // Acceptable
-      'itemFilter(1).name': 'SoldItemsOnly',
-      'itemFilter(1).value(0)': true,
+      // 'itemFilter(1).name': 'SoldItemsOnly',
+      // 'itemFilter(1).value(0)': true,
       // 'itemFilter(2).name': 'EndTimeFrom',
       // 'itemFilter(2).value(0)': new Date(now.setMonth(now.getMonth() - 1)).toISOString(),
     });
@@ -35,11 +35,10 @@ exports.getListings = async function(keyword) {
     console.log(err);
   }
 
-  // Extract necessary information
-  let listings = result.data.findCompletedItemsResponse[0].searchResult[0].item || [];
+  let listings = result.data.findItemsAdvancedResponse[0].searchResult[0].item || [];
   listings = listings.map(item => {
     return {
-      ebayItemId: item.itemId[0],
+      itemId: item.itemId[0],
       title: item.title[0],
       url: item.viewItemURL[0],
       price: item.sellingStatus[0].convertedCurrentPrice[0].__value__,
