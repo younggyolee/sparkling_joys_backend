@@ -3,6 +3,7 @@
 This service enables you to look at your assets and wishlist just with one click.
 
 Meet us at http://www.sparklingjoys.com
+(Some functionalities don't work since some eBay APIs has been deprecated)
 
 <img src="./screenshot.png">
 
